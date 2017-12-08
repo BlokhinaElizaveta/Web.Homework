@@ -22,17 +22,16 @@ index = 1
 def add_comment(db):
     name = bottle.request.forms.username
     comment = bottle.request.forms.comment
-    if is_correct_comment(comment):
+    if is_correct(comment, {"b", "i"}) and is_correct(name, set()):
         ip = get_ip()
         comment_time = datetime.now().strftime(comment_time_format)
         db.execute("insert into comment (ip, comment_time, comment, name, number_photo) values (?, ?, ?, ?, ?)",
                       (ip, comment_time, comment, name, index))
     return bottle.redirect('/')
 
-def is_correct_comment(comment):
-    valid_tags = {"b", "i"}
-    openTag = re.compile(r'(<[a-z]*>)')
-    closeTag = re.compile(r'(</[a-z]*>)')
+def is_correct(comment, valid_tags):
+    openTag = re.compile(r'(<[a-z1-9]*>)')
+    closeTag = re.compile(r'(</[a-z1-9]*>)')
     open =  openTag.findall(comment)
     close = closeTag.findall(comment)
     if not check_tags(valid_tags, open, False) or not  check_tags(valid_tags, close, True):
@@ -91,7 +90,7 @@ def root(db):
     draw.text((3, 21), str(visits_today), fill='rgb(0, 0, 0)')
     image_name = 'counter.png'
     #image.save( '/home/BlokhinaElizaveta/mysite/static/' + image_name, 'PNG')
-    image.save( '/static/' + image_name, 'PNG')
+    image.save( 'static/' + image_name, 'PNG')
 
     #return bottle.template('/home/BlokhinaElizaveta/mysite/index.html', image_name = image_name, last_visit = last_visit)
     return bottle.template('index.html', image_name = image_name, last_visit = last_visit)
