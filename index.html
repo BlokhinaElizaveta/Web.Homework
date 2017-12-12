@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Екатеринбург</title>
     <link rel="stylesheet" type="text/css" href="static/ekaterinburg.css">
-    <link rel="icon" type="/static/image/ico" href="images/icon.png" />
+    <link rel="icon" type="/static/image/ico" href="static/images/icon.png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 </head>
@@ -79,26 +79,42 @@
                 <div id="numberPhoto" class="numbertext"></div>
                 <img id="currentSlide" src="static/images/photo1.jpg" alt="photo">
                 <div id="loading" class="loading"></div>
+                <div id="commentForm" class="comment">
+                    <input class="standartInput" type="text" id="textComment" name="comment" placeholder="Комментарий...">
+                    <button class="standartButton" onclick="sendComment()">Отправить</button>
+                </div>
+                <div id="notCommentForm" class="comment">
+                    <p>Комментирование доступно только зарегистрированным пользователям...</p>
+                    <button class="standartButton"onclick="openAuth()">Авторизоваться</button>
+                    <button class="standartButton" onclick="openRegist()">Зарегистрироваться</button>
+                </div>
+                <div id="editForm" class="comment">
+                    <input class="standartInput" type="text" id="editTextComment" name="comment" placeholder="Комментарий...">
+                    <button class="standartButton" onclick=" editComment()">Отредактировать</button>
+                </div>
+
             </div>
             <div class="col span_2_of_12 next">
                 <a class="next" onclick="changeCurrentIndex(1)">&#10095;</a>
             </div>
-            <div class="col span_6_of_12 buttondiv" onclick="setCookie('backgroundImage'); updateBackgroungImage();">
+            <div class="col span_6_of_12 buttondiv" onclick="updateBackgroungImage();">
                 <button class="button"><span>Сделать фоновым изображением</span></button>
             </div>
-            <div class="col span_6_of_12 buttondiv" onclick="addComment();">
-                <button class="button"><span>Добавить комментарий к изображению</span></button>
-            </div>
+
         </div>
-        <div class="col span_12_of_12 comment" id="Comment">
-            <form action="/add_comment" method="post" id="commentForm">
-                <label for="username">Имя</label>
-                <input type="text" id="username" name="username" placeholder="Введите ваше имя...">
-                <label for="comment">Комментарий</label>
-                <input type="text" id="comment" name="comment" placeholder="Комментарий...">
-                <input type="submit" value="Submit" , id="Submit">
-            </form>
+        
+        <div id="registForm" class="login">
+            <input class="standartInput"  type="text" id="username" name="username" placeholder="Логин...">
+            <input class="standartInput" type="password" id="password" name="password" placeholder="Пароль...">
+            <button class="standartButton" onclick="register()">Зарегистрироваться</button>
         </div>
+        
+        <div id="authForm" class="login">
+            <input class="standartInput" type="text" id="usernameAuth" name="username" placeholder="Логин...">
+            <input class="standartInput" type="password" id="passwordAuth" name="password" placeholder="Пароль...">
+            <button class="standartButton" onclick="auth()">Войти</button>
+        </div>
+        
         <div class="col span_12_of_12 counter" id="Counter">
             <img src="static/{{image_name}}" alt="counter">
             <p>{{last_visit}}</p>

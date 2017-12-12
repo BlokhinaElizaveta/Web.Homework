@@ -3,6 +3,7 @@ import sqlite3
 import os
 import re
 import httpagentparser
+from passlib.hash import sha256_crypt
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 from bottle.ext import sqlite
@@ -18,6 +19,38 @@ comment_time_format = '%H:%M:%S %d.%m.%Y'
 
 index = 1
 
+@app.post('/register')
+def register(db):
+    login = bottle.request.forms.login
+    password = bottle.request.forms.password
+    users = db.execute(
+        """select * from users as u where u.login = ?""",
+        (login,)).fetchall()
+    if not login or not password:
+        return "Empty"
+    if (len(users) != 0):
+        return "Exist"
+    if (len(login) > 30 or len(password) > 30):
+        return "Long"
+
+    hashed_password = sha256_crypt.hash(password)
+    db.execute("insert into users (login, hash_password) values (?, ?)",
+                      (login, hashed_password))
+    return "OK"
+
+@app.post('/auth')
+def auth(db):
+    login = bottle.request.forms.login
+    password = bottle.request.forms.password
+    user = db.execute(
+        """select * from users as u where u.login = ?""",
+        (login,)).fetchone()
+    if user:
+        if sha256_crypt.verify(password, user['hash_password'] ):
+            return "OK"
+    return "Error"
+
+
 @app.post('/add_comment')
 def add_comment(db):
     name = bottle.request.forms.username
@@ -27,7 +60,13 @@ def add_comment(db):
         comment_time = datetime.now().strftime(comment_time_format)
         db.execute("insert into comment (ip, comment_time, comment, name, number_photo) values (?, ?, ?, ?, ?)",
                       (ip, comment_time, comment, name, index))
-    return bottle.redirect('/')
+
+@app.post('/edit_comment')
+def edit_comment(db):
+    comment = bottle.request.forms.text
+    comment_id = bottle.request.forms.comment_id
+    if is_correct(comment, {"b", "i"}):
+        db.execute("update comment set comment = ? WHERE id = ?", (comment, comment_id))
 
 def is_correct(comment, valid_tags):
     openTag = re.compile(r'(<[a-z1-9]*>)')
@@ -61,16 +100,28 @@ def save_index(db):
     index = bottle.request.forms.index
     return bottle.redirect('/')
 
-@app.get('/load_comment')
+@app.post('/get_old_comment')
+def get_old_comment(db):
+    comment_id = bottle.request.forms.comment_id
+    comment = db.execute("""select * from comment as c where c.id = ?""", (comment_id, )).fetchone()
+    return comment['comment']
+
+@app.post('/load_comment')
 def load_comment(db):
+    name = bottle.request.forms.username
     comments = db.execute("""select * from comment as c where c.number_photo = ?""", (index, )).fetchall()
     result = ""
+    edit = ""
     for comment in comments:
+        if name == comment['name']:
+            edit = '<p class="edit" onclick="openEditForm(event)">Редактировать</p>'
         result += """<div class="comm">
                     <p class = "date">{}</p>
                     <p class = "username">{}</p>
                     <p class = "data">{}</p>
-                    </div>""".format(comment['comment_time'],comment['name'],comment['comment'])
+                    <p class = "comment_id">{}</p>
+                    {}
+                    </div>""".format(comment['comment_time'],comment['name'],comment['comment'], comment['id'], edit)
     return result
 
 @app.route('/')
@@ -162,4 +213,4 @@ def send_static(filename):
     #return bottle.static_file(filename, root='static/')
     return bottle.static_file(filename, root='st/')
 
-app.run(host='localhost', port='8081', debug='True')
+app.run(host='localhost', port='8017', debug='True')

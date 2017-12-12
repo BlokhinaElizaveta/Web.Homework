@@ -165,8 +165,18 @@ img.photo {
     padding: 5px;
 }
 
+.comment_id {
+    display: none;
+}
+
 .date {
     color: #999999;
+}
+
+.edit {
+    text-decoration: underline;
+    color: #999999;
+    cursor: pointer;
 }
 
 div.close {
@@ -216,7 +226,7 @@ div.prev {
 }
 
 .buttondiv {
-    margin: 0 16% !important;
+    margin: 0 40% !important;
     width: 16% !important;
 }
 
@@ -274,7 +284,7 @@ div.prev {
     color: #c9c9c9;
 }
 
-.comment input[type=text], select {
+.standartInput {
     width: 100%;
     padding: 12px 20px;
     margin: 8px 0;
@@ -284,7 +294,7 @@ div.prev {
     box-sizing: border-box;
 }
 
-.comment input[type=submit] {
+.standartButton{
     width: 100%;
     background-color: rgb(95, 158, 160);
     color: white;
@@ -295,11 +305,19 @@ div.prev {
     cursor: pointer;
 }
 
-    input[type=submit]:hover {
+    .standartButton:hover {
         background-color: rgb(65, 128, 130);
     }
 
 div.comment {
+    display: none;
+    text-align: center;
+    background-color: #eeeeee;
+    border: 2px solid #cccccc;
+    padding: 5px;
+}
+
+div.login {
     width: 50% !important;
     margin: 5% 25% !important;
     display: none;
@@ -319,6 +337,10 @@ div.comment {
 
 #Slides {
     display: none;
+}
+
+#registForm, #authForm {
+    display: none
 }
 
 .all {

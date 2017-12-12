@@ -11,7 +11,8 @@ function openSection(sectionName) {
 	document.getElementById(sectionName).style.display = "block";
 	currentSection = sectionName;
 	document.getElementsByClassName(currentSection)[0].className += " active";
-	document.getElementById("Comment").style.display = "none";
+	document.getElementById("authForm").style.display = "none";
+	document.getElementById("registForm").style.display = "none";
 	document.getElementById("Slides").style.display = "none";
 	document.getElementById("Counter").style.display = "block";
 }
@@ -62,9 +63,11 @@ function changeSlide() {
 function showImage() {
 	var image = document.getElementById("currentSlide");
 	image.style.display = "block";
-	document.getElementById("loading").style.display = "none";
-	saveCurrentIndex();
-	load_comment();
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("editForm").style.display = "none";
+    saveCurrentIndex();
+    addCommentForm();
+    load_comment(); 
 }
 
 function closeSlide() {
@@ -114,16 +117,17 @@ function loadNextImage() {
 function insertImage() {
 	var div = document.getElementsByClassName("modal-slide")[0];
 	var oldImage = document.getElementById("currentSlide");
-	div.removeChild(oldImage);
-	div.appendChild(nextImage);
+    div.removeChild(oldImage);
+    div.insertBefore(nextImage, div.children[1]);
 	nextImage = null;
 	document.getElementById("numberPhoto").innerHTML = currentIndex + "/" + count;
-	showImage();
+    showImage();
 }
 
 window.onbeforeunload = function () {
 	sessionStorage.setItem("section", currentSection);
-	sessionStorage.setItem("numberPhoto", currentIndex);
+    sessionStorage.setItem("numberPhoto", currentIndex);
+    sessionStorage.setItem("login", userLogin);
 };
 
 window.onload = function () {
@@ -137,7 +141,8 @@ window.onload = function () {
 		openSection("Photo");
 		currentIndex = parseInt(sessionStorage.getItem("numberPhoto"));
 		openSlide(currentIndex);
-	}
+    }
+    userLogin = sessionStorage.getItem("login");
 }
 
 window.onpopstate = function (e) {
@@ -154,14 +159,14 @@ function getCookie(name) {
 	return matches ? decodeURIComponent(matches[1]) : undefined;
 }
 
-function setCookie(name) {
-	var value = currentIndex;
+function setCookie(name, value) {
 	var updatedCookie = name + "=" + value;
 	document.cookie = updatedCookie;
 	console.log(document.cookie);
 }
 
 function updateBackgroungImage() {
+    setCookie("backgroundImage", currentIndex); 
 	var header = document.getElementById("header");
 	var number = getCookie("backgroundImage");
 	var nameImage = "static/images/photo" + number + ".jpg";
@@ -169,34 +174,131 @@ function updateBackgroungImage() {
 	header.style.backgroundImage = url;
 }
 
-function addComment() {
-	var slide = document.getElementById("Slides");
-	slide.style.display = "none";
-	var commentForm = document.getElementById("Comment");
-	commentForm.style.display = "block";
-}
-
 function saveCurrentIndex() {
 	var xhr = new XMLHttpRequest();
-	var body = 'index=' + encodeURIComponent(currentIndex);
-	xhr.open("POST", '/save_index', false);
-	xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+	var body = "index=" + encodeURIComponent(currentIndex);
+	xhr.open("POST", "/save_index", false);
+	xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 	xhr.send(body);
 }
 
 function load_comment() {
 	var xhr = new XMLHttpRequest();
-	xhr.open('GET', '/load_comment', false);
-	xhr.send();
+    xhr.open("POST", "/load_comment", false);
+    var body = "username=" + encodeURIComponent(userLogin);
+	xhr.send(body);
 	if (xhr.status !== 200) {
-		console.log(xhr.status + ': ' + xhr.statusText);
+		console.log(xhr.status + ": " + xhr.statusText);
 	} else {
 		var list = document.getElementById("temp");
 		if (list)
 			list.parentNode.removeChild(list);
-		var div = document.createElement('div');
-		div.id = 'temp';
+		var div = document.createElement("div");
+		div.id = "temp";
 		div.innerHTML = xhr.responseText;
-		document.getElementById('modal-slide').appendChild(div);
+		document.getElementById("modal-slide").appendChild(div);
 	}
+}
+
+function addCommentForm() {
+    var auth = getCookie("auth");
+    if (auth && userLogin) {
+        document.getElementById("commentForm").style.display = "block";
+        document.getElementById("notCommentForm").style.display = "none";
+    } else {
+        document.getElementById("commentForm").style.display = "none";
+        document.getElementById("notCommentForm").style.display = "block";
+    }   
+}
+
+function sendComment() {
+    var xhr = new XMLHttpRequest();
+    var comment = document.getElementById("textComment").value;
+    var body = "comment=" + encodeURIComponent(comment) + "&username=" + encodeURIComponent(userLogin);
+    xhr.open("POST", "/add_comment", false);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send(body);
+    load_comment();
+    document.getElementById("textComment").value = "";
+}
+
+function openAuth() {
+    document.getElementById("Slides").style.display = "none";
+    document.getElementById("authForm").style.display = "block";
+}
+
+function openRegist() {
+    document.getElementById("Slides").style.display = "none";
+    document.getElementById("registForm").style.display = "block";
+}
+
+var userLogin;
+
+function register(){
+    var xhr = new XMLHttpRequest();
+    var login = document.getElementById("username").value;
+    var password = document.getElementById("password").value;
+    var body = "login=" + encodeURIComponent(login) + "&password=" + encodeURIComponent(password);
+    xhr.open("POST", "/register", false);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send(body);
+    if (xhr.responseText === "OK") {
+        userLogin = login;
+        setCookie("auth", "yes");
+        document.getElementById("Slides").style.display = "block";
+        document.getElementById("registForm").style.display = "none";
+        addCommentForm();
+        load_comment();
+    }
+}
+
+function auth() {
+    var xhr = new XMLHttpRequest();
+    var login = document.getElementById("usernameAuth").value;
+    var password = document.getElementById("passwordAuth").value;
+    var body = "login=" + encodeURIComponent(login) + "&password=" + encodeURIComponent(password);
+    xhr.open("POST", "/auth", false);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send(body);
+    if (xhr.responseText === "OK") {
+        userLogin = login;
+        setCookie("auth", "yes");
+        document.getElementById("Slides").style.display = "block";
+        document.getElementById("authForm").style.display = "none";
+        addCommentForm();
+        load_comment();
+    }
+}
+
+var commentId;
+
+function openEditForm(event) {
+    document.getElementById("commentForm").style.display = "none";
+    document.getElementById("notCommentForm").style.display = "none";
+    document.getElementById("editForm").style.display = "block";
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/get_old_comment", false);
+    commentId = event.target.parentElement.children[3].innerHTML;
+    var body = "comment_id=" + encodeURIComponent(commentId);
+    xhr.send(body);
+    if (xhr.status !== 200) 
+        console.log(xhr.status + ": " + xhr.statusText);
+    else 
+        document.getElementById("editTextComment").value = xhr.responseText;
+}
+
+function editComment() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/edit_comment", false);
+    var text = document.getElementById("editTextComment").value;
+    var body = "comment_id=" + encodeURIComponent(commentId) + "&text=" + encodeURIComponent(text);
+    xhr.send(body);
+    if (xhr.status !== 200)
+        console.log(xhr.status + ": " + xhr.statusText);
+    else {
+        document.getElementById("editForm").style.display = "none";
+        addCommentForm();
+        load_comment();
+    } 
 }

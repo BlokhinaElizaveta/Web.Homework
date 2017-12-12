@@ -17,4 +17,9 @@ con.execute('''create table comment(
 
 con.execute("create table hits (hits integer not null);")
 con.execute("insert into hits values (?)", (0,))
+
+con.execute('''create table users(
+            id integer primary key,
+            login varchar(30) not null,
+            hash_password varchar(30))''')
 con.commit()
