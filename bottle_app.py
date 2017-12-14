@@ -19,6 +19,49 @@ comment_time_format = '%H:%M:%S %d.%m.%Y'
 
 index = 1
 
+@app.post('/statistic')
+def get_statistic(db):
+    statistic = db.execute("""select * from visitor""").fetchall()
+    result = ""
+    for elem in statistic:
+        result += """<div class="visit">
+                    <p class = "ip">{}</p>
+                    <p class = "time">{}</p>
+                    <p class = "browser">{}</p>
+                    <p class = "visit_id">{}</p>
+                    <p class = "edit" onclick="deleteVisit(event)"> Удалить </p>
+                    </div>""".format(elem['ip'], elem['last_time'], elem['browser'], elem['id'])
+    return result
+
+@app.post('/delete_visit')
+def delete_visit(db):
+    id = bottle.request.forms.id
+    db.execute("""delete from visitor where id=?""", (id,))
+    return "OK"
+
+
+@app.post('/put_like')
+def put_like(db):
+    name = bottle.request.forms.username
+    likes = db.execute("""select * from likes where login=? and number_photo=?""", (name, index)).fetchall()
+    if (len(likes) != 0):
+        db.execute("""delete from likes where  login=? and number_photo=?""",
+            (name, index))
+    else:
+        db.execute("insert into likes (login, number_photo) values (?, ?)",
+            (name, index))
+
+@app.post('/get_count_like')
+def get_count_like(db):
+    count_likes = db.execute("""select count(*) as counter from likes where number_photo=?""", (index, )).fetchone()['counter']
+    return str(count_likes)
+
+@app.post('/is_like')
+def is_like(db):
+    name = bottle.request.forms.username
+    likes = db.execute("""select * from likes where login=? and number_photo=?""", (name, index)).fetchall()
+    return  str(len(likes) != 0)
+
 @app.post('/register')
 def register(db):
     login = bottle.request.forms.login
@@ -124,6 +167,7 @@ def load_comment(db):
                     </div>""".format(comment['comment_time'],comment['name'],comment['comment'], comment['id'], edit)
     return result
 
+
 @app.route('/')
 def root(db):
     last_visit = format_message(get_date_last_visit(db))
@@ -213,4 +257,4 @@ def send_static(filename):
     #return bottle.static_file(filename, root='static/')
     return bottle.static_file(filename, root='st/')
 
-app.run(host='localhost', port='8017', debug='True')
+app.run(host='localhost', port='8040', debug='True')

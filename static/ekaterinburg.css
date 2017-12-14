@@ -309,6 +309,10 @@ div.prev {
         background-color: rgb(65, 128, 130);
     }
 
+#adminButton, #RegistButton, #AuthButton, #OutButton {
+    width: 50%;
+}
+
 div.comment {
     display: none;
     text-align: center;
@@ -317,8 +321,15 @@ div.comment {
     padding: 5px;
 }
 
+div.comment img {
+    width: 25px;
+    height: 25px;
+    float: left;
+    cursor: pointer;
+}
+
 div.login {
-    width: 50% !important;
+    width: 46% !important;
     margin: 5% 25% !important;
     display: none;
     padding: 2%;
@@ -331,16 +342,54 @@ div.login {
     float: none
 }
 
+.admin {
+    margin: 0;
+    padding: 0 25%;
+    width: 50%;
+    text-align: center;
+}
+
+    .admin p {
+        float: left;
+    }
+
+.visit {
+    overflow: auto;
+    text-align: center;
+}
+
+.visit p {
+    margin-right: 1%;
+}
+
+.visit_id {
+    display: none;
+}
+
+#loginStatus {
+    display: none;
+}
 #Attraction {
     display: block;
+
 }
+
+#likeForm {
+    display: block;
+    overflow: auto;
+}
+    #likeForm p {
+        float: left;
+        color: rgb(95, 158, 160);
+        margin: 5px 10px;
+    }
 
 #Slides {
     display: none;
 }
 
-#registForm, #authForm {
-    display: none
+#Logout {
+    display: none;
 }
 
 .all {

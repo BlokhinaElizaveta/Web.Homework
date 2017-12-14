@@ -22,4 +22,9 @@ con.execute('''create table users(
             id integer primary key,
             login varchar(30) not null,
             hash_password varchar(30))''')
+
+con.execute('''create table likes(
+            id integer primary key,
+            login varchar(30) not null,
+            number_photo varchar(30))''')
 con.commit()

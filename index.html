@@ -79,12 +79,18 @@
                 <div id="numberPhoto" class="numbertext"></div>
                 <img id="currentSlide" src="static/images/photo1.jpg" alt="photo">
                 <div id="loading" class="loading"></div>
+                <div id="likeForm" class="comment">
+                    <img id="likeImage" src="static/images/like.png" alt="like" onclick="putLike();">
+                    <p>Мне нравится</p>
+                    <p id="likeCount"></p>
+                </div>
                 <div id="commentForm" class="comment">
                     <input class="standartInput" type="text" id="textComment" name="comment" placeholder="Комментарий...">
                     <button class="standartButton" onclick="sendComment()">Отправить</button>
+                    <button class="standartButton" onclick="logout()">Выйти</button>
                 </div>
                 <div id="notCommentForm" class="comment">
-                    <p>Комментирование доступно только зарегистрированным пользователям...</p>
+                    <p>Лайки и комментирование доступно только зарегистрированным пользователям...</p>
                     <button class="standartButton"onclick="openAuth()">Авторизоваться</button>
                     <button class="standartButton" onclick="openRegist()">Зарегистрироваться</button>
                 </div>
@@ -97,19 +103,19 @@
             <div class="col span_2_of_12 next">
                 <a class="next" onclick="changeCurrentIndex(1)">&#10095;</a>
             </div>
-            <div class="col span_6_of_12 buttondiv" onclick="updateBackgroungImage();">
+            <div class="col span_12_of_12 buttondiv" onclick="updateBackgroungImage();">
                 <button class="button"><span>Сделать фоновым изображением</span></button>
             </div>
 
         </div>
         
-        <div id="registForm" class="login">
+        <div id="registForm" class="col span_12_of_12 login">
             <input class="standartInput"  type="text" id="username" name="username" placeholder="Логин...">
             <input class="standartInput" type="password" id="password" name="password" placeholder="Пароль...">
             <button class="standartButton" onclick="register()">Зарегистрироваться</button>
         </div>
         
-        <div id="authForm" class="login">
+        <div id="authForm" class="col span_12_of_12 login">
             <input class="standartInput" type="text" id="usernameAuth" name="username" placeholder="Логин...">
             <input class="standartInput" type="password" id="passwordAuth" name="password" placeholder="Пароль...">
             <button class="standartButton" onclick="auth()">Войти</button>
@@ -118,6 +124,17 @@
         <div class="col span_12_of_12 counter" id="Counter">
             <img src="static/{{image_name}}" alt="counter">
             <p>{{last_visit}}</p>
+            <div id="Init">
+                <button class="standartButton" id="AuthButton" onclick="openAuth()">Авторизоваться</button>
+                <button class="standartButton" id="RegistButton" onclick="openRegist()">Зарегистрироваться</button>
+            </div>
+            
+            <div id="Logout">
+                <button class="standartButton" id="OutButton" onclick="logout()">Выйти</button>
+            </div>
+
+            <button onclick="toAdminInterface()" class="standartButton" id="adminButton">Административный интерфейс</button>
+            <p id="loginStatus">Доступен только администратору</p>
         </div>
     </div>
     <script src="static/my_scripts.js"></script>

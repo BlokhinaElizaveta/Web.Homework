@@ -57,17 +57,19 @@ function changeSlide() {
 		image.style.display = "none";
 		document.getElementById("loading").style.display = "block";
 	}
-	image.addEventListener('load', showImage);
+	image.addEventListener('load', updateModalSlide);
 }
 
-function showImage() {
+function updateModalSlide() {
 	var image = document.getElementById("currentSlide");
 	image.style.display = "block";
     document.getElementById("loading").style.display = "none";
     document.getElementById("editForm").style.display = "none";
     saveCurrentIndex();
     addCommentForm();
-    load_comment(); 
+    load_comment();
+    updateCountLike();
+    changeLikeImage();
 }
 
 function closeSlide() {
@@ -75,7 +77,8 @@ function closeSlide() {
 	gallery.style.display = "block";
 	var slide = document.getElementById("Slides");
 	slide.style.display = "none";
-	document.getElementById("Counter").style.display = "block";
+    document.getElementById("Counter").style.display = "block";
+    currentSection = "Photo";
 }
 
 function updateHistory() {
@@ -121,7 +124,7 @@ function insertImage() {
     div.insertBefore(nextImage, div.children[1]);
 	nextImage = null;
 	document.getElementById("numberPhoto").innerHTML = currentIndex + "/" + count;
-    showImage();
+    updateModalSlide();
 }
 
 window.onbeforeunload = function () {
@@ -142,7 +145,11 @@ window.onload = function () {
 		currentIndex = parseInt(sessionStorage.getItem("numberPhoto"));
 		openSlide(currentIndex);
     }
-    userLogin = sessionStorage.getItem("login");
+    var login = sessionStorage.getItem("login");
+    if (login !== "null")
+        userLogin = sessionStorage.getItem("login");
+    else
+        userLogin = null;
 }
 
 window.onpopstate = function (e) {
@@ -162,7 +169,10 @@ function getCookie(name) {
 function setCookie(name, value) {
 	var updatedCookie = name + "=" + value;
 	document.cookie = updatedCookie;
-	console.log(document.cookie);
+}
+
+function delete_cookie(name) {
+    document.cookie = name + "=;";
 }
 
 function updateBackgroungImage() {
@@ -223,18 +233,21 @@ function sendComment() {
 }
 
 function openAuth() {
-    document.getElementById("Slides").style.display = "none";
+    document.getElementById("registForm").style.display = "none";
+    document.getElementById(currentSection).style.display = "none";
     document.getElementById("authForm").style.display = "block";
 }
 
 function openRegist() {
-    document.getElementById("Slides").style.display = "none";
+    document.getElementById("authForm").style.display = "none";
+    document.getElementById(currentSection).style.display = "none";
     document.getElementById("registForm").style.display = "block";
 }
 
 var userLogin;
 
-function register(){
+function register() {
+   
     var xhr = new XMLHttpRequest();
     var login = document.getElementById("username").value;
     var password = document.getElementById("password").value;
@@ -245,10 +258,15 @@ function register(){
     if (xhr.responseText === "OK") {
         userLogin = login;
         setCookie("auth", "yes");
-        document.getElementById("Slides").style.display = "block";
+       
+        document.getElementById(currentSection).style.display = "block";
         document.getElementById("registForm").style.display = "none";
-        addCommentForm();
-        load_comment();
+        if (currentSection === "Slides")
+            updateModalSlide();
+        else {
+            document.getElementById("Init").style.display = "none";
+            document.getElementById("Logout").style.display = "block";
+        }
     }
 }
 
@@ -263,10 +281,14 @@ function auth() {
     if (xhr.responseText === "OK") {
         userLogin = login;
         setCookie("auth", "yes");
-        document.getElementById("Slides").style.display = "block";
+        document.getElementById(currentSection).style.display = "block";
         document.getElementById("authForm").style.display = "none";
-        addCommentForm();
-        load_comment();
+        if (currentSection === "Slides")
+            updateModalSlide();
+        else {
+            document.getElementById("Init").style.display = "none";
+            document.getElementById("Logout").style.display = "block";
+        }
     }
 }
 
@@ -301,4 +323,98 @@ function editComment() {
         addCommentForm();
         load_comment();
     } 
+}
+
+function putLike() {
+    var auth = getCookie("auth");
+    if (auth && userLogin) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/put_like", false);
+        var body = "username=" + encodeURIComponent(userLogin);
+        xhr.send(body);
+        if (xhr.status !== 200)
+            console.log(xhr.status + ": " + xhr.statusText);
+        else {
+            changeLikeImage();
+            updateCountLike();
+        }
+
+    }
+}
+
+function updateCountLike() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/get_count_like", false);
+    xhr.send();
+    if (xhr.status !== 200)
+        console.log(xhr.status + ": " + xhr.statusText);
+    else {
+        document.getElementById("likeCount").innerHTML = xhr.responseText;
+        changeLikeImage();
+    }
+}
+
+function changeLikeImage() {
+    var auth = getCookie("auth");
+    if (auth && userLogin) {
+        var xhr = new XMLHttpRequest();
+        var body = "username=" + encodeURIComponent(userLogin);
+        xhr.open("POST", "/is_like", false);
+        xhr.send(body);
+        if (xhr.status === 200) {
+            var islike = xhr.responseText;
+            if (islike === "True")
+                document.getElementById("likeImage").src = "static/images/like_active.png";
+            else
+                document.getElementById("likeImage").src = "static/images/like.png";
+        }
+    }
+}
+
+function logout() {
+    userLogin = null;
+    delete_cookie("auth");
+    if (currentSection === "Slides")
+        updateModalSlide();
+    else {
+        document.getElementById("Init").style.display = "block";
+        document.getElementById("Logout").style.display = "none";
+        toAdminInterface();
+    }
+
+}
+
+function toAdminInterface() {
+    if (userLogin === "admin") {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/statistic", false);
+        xhr.send();
+        if (xhr.status !== 200) {
+            console.log(xhr.status + ": " + xhr.statusText);
+        } else {
+            document.getElementById("loginStatus").style.display = "none";
+            var list = document.getElementById("Admin");
+            if (list)
+                list.parentNode.removeChild(list);
+            var div = document.createElement("div");
+            div.id = "Admin";
+            div.className = "col span_12_of_12 admin";
+            div.innerHTML = xhr.responseText;
+            document.getElementsByClassName("all")[0].appendChild(div);
+        }
+    } else {
+        document.getElementById("loginStatus").style.display = "block";
+        var adm = document.getElementById("Admin");
+        if (adm)
+            adm.parentNode.removeChild(adm);
+    }
+}
+
+function deleteVisit(event) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/delete_visit", false);
+    var visitId = event.target.parentElement.children[3].innerHTML;
+    var body = "id=" + encodeURIComponent(visitId);
+    xhr.send(body);
+    toAdminInterface();
 }
