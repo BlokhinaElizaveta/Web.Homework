@@ -195,8 +195,7 @@ function saveCurrentIndex() {
 function load_comment() {
 	var xhr = new XMLHttpRequest();
     xhr.open("POST", "/load_comment", false);
-    var body = "username=" + encodeURIComponent(userLogin);
-	xhr.send(body);
+	xhr.send();
 	if (xhr.status !== 200) {
 		console.log(xhr.status + ": " + xhr.statusText);
 	} else {
@@ -224,7 +223,7 @@ function addCommentForm() {
 function sendComment() {
     var xhr = new XMLHttpRequest();
     var comment = document.getElementById("textComment").value;
-    var body = "comment=" + encodeURIComponent(comment) + "&username=" + encodeURIComponent(userLogin);
+    var body = "comment=" + encodeURIComponent(comment);
     xhr.open("POST", "/add_comment", false);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.send(body);
@@ -246,8 +245,7 @@ function openRegist() {
 
 var userLogin;
 
-function register() {
-   
+function register() {   
     var xhr = new XMLHttpRequest();
     var login = document.getElementById("username").value;
     var password = document.getElementById("password").value;
@@ -330,15 +328,13 @@ function putLike() {
     if (auth && userLogin) {
         var xhr = new XMLHttpRequest();
         xhr.open("POST", "/put_like", false);
-        var body = "username=" + encodeURIComponent(userLogin);
-        xhr.send(body);
+        xhr.send();
         if (xhr.status !== 200)
             console.log(xhr.status + ": " + xhr.statusText);
         else {
             changeLikeImage();
             updateCountLike();
         }
-
     }
 }
 
@@ -358,9 +354,8 @@ function changeLikeImage() {
     var auth = getCookie("auth");
     if (auth && userLogin) {
         var xhr = new XMLHttpRequest();
-        var body = "username=" + encodeURIComponent(userLogin);
         xhr.open("POST", "/is_like", false);
-        xhr.send(body);
+        xhr.send();
         if (xhr.status === 200) {
             var islike = xhr.responseText;
             if (islike === "True")

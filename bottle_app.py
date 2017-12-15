@@ -8,18 +8,26 @@ from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
 from bottle.ext import sqlite
 from bs4 import BeautifulSoup
+from beaker.middleware import SessionMiddleware
 
+session_opts = {
+    'session.type': 'memory',
+    'session.cookie_expires': 300,
+    'session.auto': True
+}
 
-app = bottle.Bottle()
+app = bottle.app()
 plugin = sqlite.Plugin(dbfile='data.db')
 app.install(plugin)
+
+app = SessionMiddleware(app, session_opts)
 
 time_format = '%Y-%m-%d %H:%M:%S'
 comment_time_format = '%H:%M:%S %d.%m.%Y'
 
 index = 1
 
-@app.post('/statistic')
+@bottle.route('/statistic', method='POST')
 def get_statistic(db):
     statistic = db.execute("""select * from visitor""").fetchall()
     result = ""
@@ -33,16 +41,15 @@ def get_statistic(db):
                     </div>""".format(elem['ip'], elem['last_time'], elem['browser'], elem['id'])
     return result
 
-@app.post('/delete_visit')
+@bottle.route('/delete_visit', method='POST')
 def delete_visit(db):
     id = bottle.request.forms.id
     db.execute("""delete from visitor where id=?""", (id,))
     return "OK"
 
-
-@app.post('/put_like')
+@bottle.route('/put_like', method='POST')
 def put_like(db):
-    name = bottle.request.forms.username
+    name = get_login()
     likes = db.execute("""select * from likes where login=? and number_photo=?""", (name, index)).fetchall()
     if (len(likes) != 0):
         db.execute("""delete from likes where  login=? and number_photo=?""",
@@ -51,18 +58,18 @@ def put_like(db):
         db.execute("insert into likes (login, number_photo) values (?, ?)",
             (name, index))
 
-@app.post('/get_count_like')
+@bottle.route('/get_count_like', method='POST')
 def get_count_like(db):
     count_likes = db.execute("""select count(*) as counter from likes where number_photo=?""", (index, )).fetchone()['counter']
     return str(count_likes)
 
-@app.post('/is_like')
+@bottle.route('/is_like', method='POST')
 def is_like(db):
-    name = bottle.request.forms.username
+    name = get_login()
     likes = db.execute("""select * from likes where login=? and number_photo=?""", (name, index)).fetchall()
     return  str(len(likes) != 0)
 
-@app.post('/register')
+@bottle.route('/register', method='POST')
 def register(db):
     login = bottle.request.forms.login
     password = bottle.request.forms.password
@@ -79,9 +86,12 @@ def register(db):
     hashed_password = sha256_crypt.hash(password)
     db.execute("insert into users (login, hash_password) values (?, ?)",
                       (login, hashed_password))
+    s = bottle.request.environ.get('beaker.session')
+    s['login'] = login
+    s.save()
     return "OK"
 
-@app.post('/auth')
+@bottle.route('/auth', method='POST')
 def auth(db):
     login = bottle.request.forms.login
     password = bottle.request.forms.password
@@ -90,13 +100,16 @@ def auth(db):
         (login,)).fetchone()
     if user:
         if sha256_crypt.verify(password, user['hash_password'] ):
+            s = bottle.request.environ.get('beaker.session')
+            s['login'] = login
+            s.save()
             return "OK"
     return "Error"
 
 
-@app.post('/add_comment')
+@bottle.route('/add_comment', method='POST')
 def add_comment(db):
-    name = bottle.request.forms.username
+    name = get_login()
     comment = bottle.request.forms.comment
     if is_correct(comment, {"b", "i"}) and is_correct(name, set()):
         ip = get_ip()
@@ -104,7 +117,7 @@ def add_comment(db):
         db.execute("insert into comment (ip, comment_time, comment, name, number_photo) values (?, ?, ?, ?, ?)",
                       (ip, comment_time, comment, name, index))
 
-@app.post('/edit_comment')
+@bottle.route('/edit_comment', method='POST')
 def edit_comment(db):
     comment = bottle.request.forms.text
     comment_id = bottle.request.forms.comment_id
@@ -137,21 +150,21 @@ def check_tags(valid, tags, isClose):
             return False
     return True
 
-@app.post('/save_index')
+@bottle.route('/save_index', method='POST')
 def save_index(db):
     global index
     index = bottle.request.forms.index
     return bottle.redirect('/')
 
-@app.post('/get_old_comment')
+@bottle.route('/get_old_comment', method='POST')
 def get_old_comment(db):
     comment_id = bottle.request.forms.comment_id
     comment = db.execute("""select * from comment as c where c.id = ?""", (comment_id, )).fetchone()
     return comment['comment']
 
-@app.post('/load_comment')
+@bottle.route('/load_comment', method='POST')
 def load_comment(db):
-    name = bottle.request.forms.username
+    name = get_login()
     comments = db.execute("""select * from comment as c where c.number_photo = ?""", (index, )).fetchall()
     result = ""
     edit = ""
@@ -168,7 +181,7 @@ def load_comment(db):
     return result
 
 
-@app.route('/')
+@bottle.route('/')
 def root(db):
     last_visit = format_message(get_date_last_visit(db))
     update_visits(db)
@@ -251,10 +264,14 @@ def format_message(date):
     else:
         return "Вы ещё не посещали наш сайт"
 
+def get_login():
+    s = bottle.request.environ.get('beaker.session')
+    if 'login' in s:
+        return s['login']
 
-@app.route('/<filename:path>')
+@bottle.route('/<filename:path>')
 def send_static(filename):
     #return bottle.static_file(filename, root='static/')
     return bottle.static_file(filename, root='st/')
 
-app.run(host='localhost', port='8040', debug='True')
+bottle.run(app=app, host='localhost', port='8044', debug='True')
