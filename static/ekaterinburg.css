@@ -309,7 +309,7 @@ div.prev {
         background-color: rgb(65, 128, 130);
     }
 
-#adminButton, #RegistButton, #AuthButton, #OutButton {
+.width50 {
     width: 50%;
 }
 
@@ -364,6 +364,11 @@ div.login {
 
 .visit_id {
     display: none;
+}
+
+.download {
+    text-align: center;
+    margin: 0 !important;
 }
 
 #loginStatus {

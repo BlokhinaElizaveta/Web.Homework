@@ -67,6 +67,9 @@
             <div class="col span_4_of_12 demo">
                 <img src="static/images/photo9_min.jpg" onclick="openSlide(9)" class="photo" alt="photo">
             </div>
+            <div class="col span_12_of_12 download">
+                <button class="standartButton width50" onclick="downloadStatisticsOnPhotos()">Скачать статистику</button>
+            </div>
         </div>
         <div id="Slides" class="col span_12_of_12 modal">
             <div class="col span_12_of_12 close">
@@ -125,15 +128,15 @@
             <img src="static/{{image_name}}" alt="counter">
             <p>{{last_visit}}</p>
             <div id="Init">
-                <button class="standartButton" id="AuthButton" onclick="openAuth()">Авторизоваться</button>
-                <button class="standartButton" id="RegistButton" onclick="openRegist()">Зарегистрироваться</button>
+                <button class="standartButton width50" id="AuthButton" onclick="openAuth()">Авторизоваться</button>
+                <button class="standartButton width50" id="RegistButton" onclick="openRegist()">Зарегистрироваться</button>
             </div>
             
             <div id="Logout">
-                <button class="standartButton" id="OutButton" onclick="logout()">Выйти</button>
+                <button class="standartButton width50" id="OutButton" onclick="logout()">Выйти</button>
             </div>
 
-            <button onclick="toAdminInterface()" class="standartButton" id="adminButton">Административный интерфейс</button>
+            <button onclick="toAdminInterface()" class="standartButton width50" id="adminButton">Административный интерфейс</button>
             <p id="loginStatus">Доступен только администратору</p>
         </div>
     </div>

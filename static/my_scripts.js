@@ -413,3 +413,28 @@ function deleteVisit(event) {
     xhr.send(body);
     toAdminInterface();
 }
+
+function download(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(text));
+    element.setAttribute("download", filename);
+
+    element.style.display = "none";
+    document.body.appendChild(element);
+
+    element.click();
+
+    document.body.removeChild(element);
+}
+
+function downloadStatisticsOnPhotos() {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/get_statistics_on_photos", false);
+    var body = "count=" + encodeURIComponent(9);
+    xhr.send(body);
+    if (xhr.status === 200) {
+        var statistics = xhr.responseText;
+        var fileName = "statistics.xml";
+        download(fileName, statistics);
+    }
+}

@@ -27,6 +27,25 @@ comment_time_format = '%H:%M:%S %d.%m.%Y'
 
 index = 1
 
+
+@bottle.route('/get_statistics_on_photos', method='POST')
+def get_statistics_on_photos(db):
+    count_photo = bottle.request.forms.count
+    result = ""
+    for i in range(1, int(count_photo) + 1):
+        numberOfLikes = db.execute("""select count(*) as counter from likes where number_photo=?""",
+            (i,)).fetchone()["counter"]
+        numberOfComments = db.execute("""select count(*) as counter from comment where number_photo=?""",
+            (i,)).fetchone()["counter"]
+        result += """
+<photo>
+    <numberPhoto>{}</numberPhoto>
+    <numberOfLikes>{}</numberOfLikes>
+    <numberOfComments>{}</numberOfComments>
+</photo>""".format(i, numberOfLikes, numberOfComments)
+    return result
+
+
 @bottle.route('/statistic', method='POST')
 def get_statistic(db):
     statistic = db.execute("""select * from visitor""").fetchall()
@@ -274,4 +293,4 @@ def send_static(filename):
     #return bottle.static_file(filename, root='static/')
     return bottle.static_file(filename, root='st/')
 
-bottle.run(app=app, host='localhost', port='8044', debug='True')
+bottle.run(app=app, host='localhost', port='8048', debug='True')
